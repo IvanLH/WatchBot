@@ -1,0 +1,34 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center|center_horizontal"
+    android:orientation="vertical"
+    android:background="@color/white"
+    tools:context="com.legacy.apppolicia.fragments.NoEmergenciesFragment">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:id="@+id/happy_face"
+        android:fontFamily="sans-serif-condensed"
+        android:textSize="80sp"
+        android:gravity="bottom"
+        android:text=":D"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="top"
+        android:layout_below="@id/happy_face"
+        android:text="@string/no_emergencies"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:id="@+id/toggle_shift"
+        android:text="Iniciar turno"/>
+
+</LinearLayout>

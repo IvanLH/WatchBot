@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.legacy.apppolicia">
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:name=".common.MyApplication"
+        android:theme="@style/AppTheme">
+
+        <activity android:name=".activities.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+
+        <service android:name=".services.CopMessagingService"/>
+        <service android:name=".services.BackgroundPostService"/>
+        <service android:name=".services.UpdateLocationService"/>
+
+        <receiver android:name=".recievers.CopMessageReadReceiver">
+            <intent-filter>
+                <action android:name="com.legacy.apppolicia.ACTION_MESSAGE_READ" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".recievers.CustomHandler" />
+        <receiver android:name=".recievers.CopMessageReplyReceiver">
+            <intent-filter>
+                <action android:name="com.legacy.apppolicia.ACTION_MESSAGE_REPLY" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
