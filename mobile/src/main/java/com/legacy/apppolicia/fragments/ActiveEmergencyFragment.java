@@ -33,7 +33,7 @@ public class ActiveEmergencyFragment extends Fragment {
     private double lat;
     private double lon;
     private String name;
-    private String details;
+    private String details = "";
     private int id;
 
     public enum Command{
@@ -66,9 +66,13 @@ public class ActiveEmergencyFragment extends Fragment {
                 lat = object.getDouble("ubicacionX");
                 lon = object.getDouble("ubicacionY");
                 name = object.getString("nombre");
-                if(object.has("detalles")) {
-                    details = object.getString("detalles");
+                details += object.getString("tipo") + " - ";
+                Log.i("DETALLES", object.getString("tipo"));
+                if(object.has("descripcion") && !object.get("descripcion").equals("null")) {
+                    details += object.getString("descripcion");
+                    Log.i("DETALLES", object.getString("descripcion"));
                 }
+
                 type = object.getInt("clase");
                 id = object.getInt("idEmergencia");
                 int status = object.getInt("estado");
