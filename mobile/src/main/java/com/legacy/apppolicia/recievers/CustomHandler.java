@@ -39,8 +39,6 @@ public class CustomHandler extends BroadcastReceiver
                     .getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancelAll();
             context.startService(service);
-            Log.i(TAG, "User received notification with Message: " + bundle.get("message"));
-
         }
 
     }

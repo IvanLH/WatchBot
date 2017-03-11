@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,10 @@ import android.widget.TextView;
 
 import com.legacy.apppolicia.R;
 import com.legacy.apppolicia.activities.MainActivity;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static com.legacy.apppolicia.activities.MainActivity.FIRE;
 import static com.legacy.apppolicia.activities.MainActivity.MEDICAL;
@@ -25,6 +30,11 @@ public class ActiveEmergencyFragment extends Fragment {
     private String mProfileData;
     private boolean responding = false;
     private int type = POLICE;
+    private double lat;
+    private double lon;
+    private String name;
+    private String details;
+    private int id;
 
     public enum Command{
         NAVIGATE,
@@ -51,6 +61,22 @@ public class ActiveEmergencyFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mProfileData = getArguments().getString(PROFILE_DATA);
+            try {
+                JSONObject object = new JSONObject(mProfileData);
+                lat = object.getDouble("ubicacionX");
+                lon = object.getDouble("ubicacionY");
+                name = object.getString("nombre");
+                if(object.has("detalles")) {
+                    details = object.getString("detalles");
+                }
+                type = object.getInt("clase");
+                id = object.getInt("idEmergencia");
+                int status = object.getInt("estado");
+                responding = status == 1;
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -62,7 +88,7 @@ public class ActiveEmergencyFragment extends Fragment {
         navigateLL.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onAciveEmergencyFragmentInteraction(Command.NAVIGATE);
+                mListener.onAciveEmergencyFragmentInteraction(Command.NAVIGATE, lat, lon, 0);
             }
         });
         LinearLayout titleLL = (LinearLayout) v.findViewById(R.id.title_ll);
@@ -80,8 +106,18 @@ public class ActiveEmergencyFragment extends Fragment {
                 emergencyTV.setText(R.string.police);
                 titleLL.setBackground(getResources().getDrawable(R.drawable.police_card_background));
                 break;
+            default:
+                emergencyTV.setText(R.string.police);
+                titleLL.setBackground(getResources().getDrawable(R.drawable.police_card_background));
+                break;
         }
-        Button mainBtn = (Button) v.findViewById(R.id.main_btn);
+        TextView nameTV = (TextView) v.findViewById(R.id.name_tv);
+        TextView detailsTV = (TextView)v.findViewById(R.id.details_tv);
+
+        nameTV.setText(name);
+        detailsTV.setText(details);
+
+        final Button mainBtn = (Button) v.findViewById(R.id.main_btn);
         if (responding) {
             mainBtn.setText(R.string.solve);
         }else{
@@ -91,11 +127,11 @@ public class ActiveEmergencyFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(responding){
-                    mListener.onAciveEmergencyFragmentInteraction(Command.SOLVED);
-                    //TODO notify webservice
+                    mListener.onAciveEmergencyFragmentInteraction(Command.SOLVED, 0, 0, id);
                 }else{
-                    mListener.onAciveEmergencyFragmentInteraction(Command.RESPONDING);
-                    //TODO notify webservice
+                    mListener.onAciveEmergencyFragmentInteraction(Command.RESPONDING, 0, 0, id);
+                    mainBtn.setText(R.string.solve);
+                    responding = true;
                 }
             }
         });
@@ -121,6 +157,6 @@ public class ActiveEmergencyFragment extends Fragment {
     }
 
     public interface OnActiveEmergencyFragmentInteractionListener {
-        void onAciveEmergencyFragmentInteraction(Command command);
+        void onAciveEmergencyFragmentInteraction(Command command, double lat, double lon, int id);
     }
 }

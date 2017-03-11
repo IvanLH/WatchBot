@@ -36,16 +36,14 @@ public class CopMessageReplyReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent intentMaps = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("google.navigation:q=19.030769, -98.235876"));
-        intentMaps.setPackage("com.google.android.apps.maps");
-        intentMaps.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intentMaps);
         if (CopMessagingService.REPLY_ACTION.equals(intent.getAction())) {
             int conversationId = intent.getIntExtra(CopMessagingService.CONVERSATION_ID, -1);
+            int emergencyId = intent.getIntExtra("emergency_id", -1);
             CharSequence reply = getMessageText(intent);
             Intent intentService = new Intent(context, BackgroundPostService.class);
             if (reply != null) {
                 intentService.putExtra("message", reply.toString());
+                intentService.putExtra("emergency_id", emergencyId);
             }
             context.startService(intentService);
             Log.d(TAG, "Got reply (" + reply + ") for ConversationId " + conversationId);

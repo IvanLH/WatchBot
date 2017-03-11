@@ -60,15 +60,16 @@ public class CopMessagingService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent != null && intent.getExtras() != null){
             String message = intent.getExtras().getString("message");
-            sendNotification(1, message, "John Doe",
-                    System.currentTimeMillis());
+            sendNotification(1, message, "Emergency",
+                    System.currentTimeMillis(), Integer.parseInt(intent.getStringExtra("emergency_id")));
         }
         return START_STICKY;
     }
 
 
     private void sendNotification(int conversationId, String message,
-                                  String participant, long timestamp) {
+                                  String participant, long timestamp, int emergency_id) {
+        conversationId = emergency_id;
         Log.i(TAG, "Message: " + message);
         Intent msgHeardIntent = new Intent()
                 .addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
@@ -90,7 +91,8 @@ public class CopMessagingService extends Service {
         Intent msgReplyIntent = new Intent()
                 .addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
                 .setAction(REPLY_ACTION)
-                .putExtra("conversation_id", conversationId);
+                .putExtra("conversation_id", conversationId)
+                .putExtra("emergency_id", emergency_id);
 
         PendingIntent msgReplyPendingIntent = PendingIntent.getBroadcast(
                 getApplicationContext(),
@@ -135,7 +137,7 @@ public class CopMessagingService extends Service {
         public void handleMessage(Message msg) {
             String message = ((Bundle) msg.obj).getString("message");
             sendNotification(1, message, "John Doe",
-                    System.currentTimeMillis());
+                    System.currentTimeMillis(), -1);
         }
     }
 }

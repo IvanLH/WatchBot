@@ -179,27 +179,36 @@ public class InformationSource {
     }
 
     public static ServerResponse getEmergency(){
-        return null;
+        HashMap<String, String> data = new HashMap<>();
+        data.put("idUnidad", "9001");
+        return sendData(POST, "https://echo-mx.herokuapp.com/services/showEmergencyDetails", "emergencia", data);
     }
 
-    public static ServerResponse sendResponse(String toSend) {
-        return null;
+    public static ServerResponse sendResponse(String toSend, int emergency_id) {
+        HashMap<String, String> data = new HashMap<>();
+        data.put("idUnidad", "9001");
+        data.put("idEmergencia", "" + emergency_id);
+        data.put("answer", toSend);
+        return sendData(POST, "https://echo-mx.herokuapp.com/services/response", "success", data);
     }
 
-    public static ServerResponse notifySolved() {
-        return null;
-    }
-
-    public static ServerResponse notifyResponding() {
-        return null;
+    public static ServerResponse notifySolved(int emergency_id) {
+        HashMap<String, String> data = new HashMap<>();
+        data.put("idUnidad", "9001");
+        data.put("idEmergencia", "" + emergency_id);
+        return sendData(POST, "https://echo-mx.herokuapp.com/services/solved", "success", data);
     }
 
     public static ServerResponse notifyShiftStarting() {
-        return null;
+        HashMap<String, String> data = new HashMap<>();
+        data.put("idUnidad", "9001");
+        return sendData(POST, "https://echo-mx.herokuapp.com/services/startShift", "success", data);
     }
 
     public static ServerResponse notifyShiftEnding() {
-        return null;
+        HashMap<String, String> data = new HashMap<>();
+        data.put("idUnidad", "9001");
+        return sendData(POST, "https://echo-mx.herokuapp.com/services/endShift", "success", data);
     }
 
     public static ServerResponse sendLocationUpdate(double longitude, double latitude) {

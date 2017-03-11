@@ -25,14 +25,17 @@ public class BackgroundPostService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        int emergencyId = -1;
         if(intent != null && intent.getExtras() != null && sendResponseTask == null){
             String message = intent.getExtras().getString("message");
-            sendResponseTask = new SendResponseTask(message);
+            emergencyId = intent.getIntExtra("emergency_id", -1);
+            sendResponseTask = new SendResponseTask(message, emergencyId);
             sendResponseTask.execute((Void) null);
         }else if(intent != null && intent.getExtras() != null && sendResponseTask != null){
             sendResponseTask.cancel(true);
+            emergencyId = intent.getIntExtra("emergency_id", -1);
             String message = intent.getExtras().getString("message");
-            sendResponseTask = new SendResponseTask(message);
+            sendResponseTask = new SendResponseTask(message, emergencyId);
             sendResponseTask.execute((Void) null);
         }
         return START_STICKY;
@@ -42,12 +45,14 @@ public class BackgroundPostService extends Service {
 
         private ServerResponse response;
         private String toSend;
-        public SendResponseTask(String response){
+        private int emergency_id;
+        public SendResponseTask(String response, int emergencyId){
             toSend = response;
+            emergency_id = emergencyId;
         }
         @Override
         protected Boolean doInBackground(Void... params) {
-            response = InformationSource.sendResponse(toSend);
+            response = InformationSource.sendResponse(toSend, emergency_id);
             if(response != null){
                 return response.isSuccess();
             }else{

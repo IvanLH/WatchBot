@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.os.Messenger;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +31,10 @@ import com.legacy.apppolicia.recievers.CustomHandler;
 import com.legacy.apppolicia.R;
 import com.legacy.apppolicia.services.UpdateLocationService;
 import com.pushbots.push.Pushbots;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
         implements ActiveEmergencyFragment.OnActiveEmergencyFragmentInteractionListener,
@@ -62,11 +67,9 @@ public class MainActivity extends AppCompatActivity
         if(actionBar != null){
             actionBar.setTitle(R.string.app_name);
         }
-        NoEmergenciesFragment noEnergenciesFragment = NoEmergenciesFragment.newInstance();
-        ActiveEmergencyFragment activeEmergencyFragment = ActiveEmergencyFragment.newInstance("");
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, noEnergenciesFragment)
-                .commit();
+        GetEmergencyTask getEmergencyTask = new GetEmergencyTask();
+        getEmergencyTask.execute((Void) null);
+
     }
     @Override
     protected void onStart() {
@@ -76,20 +79,21 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onAciveEmergencyFragmentInteraction(Command command) {
+    public void onAciveEmergencyFragmentInteraction(Command command, double lat, double lon, int id) {
         switch (command){
             case NAVIGATE:
                 Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                        Uri.parse("google.navigation:q=19.030769, -98.235876"));
-                //TODO proper coordinates
+                        Uri.parse("google.navigation:q="+lat+"," + lon));
                 intent.setPackage("com.google.android.apps.maps");
                 startActivity(intent);
                 break;
             case SOLVED:
-
+                NotifySolvedTask notifySolvedtask = new NotifySolvedTask(id);
+                notifySolvedtask.execute((Void) null);
                 break;
             case RESPONDING:
-
+                SendResponseTask sendResponseTask = new SendResponseTask("Yes", id);
+                sendResponseTask.execute((Void) null);
                 break;
         }
     }
@@ -127,17 +131,45 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected void onPostExecute(Boolean result){
+            Fragment toNav;
+            if(result){
+                try {
+                    response.getData();
+                    String array = response.getData().get("emergencia");
+                    StringBuilder builder = new StringBuilder(array);
+                    JSONArray array1 = new JSONArray(array);
+                    JSONObject object = array1.getJSONObject(0);
+                    toNav = ActiveEmergencyFragment.newInstance(object.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    toNav = null;
+                }
 
+            }else{
+                toNav = NoEmergenciesFragment.newInstance();
+            }
+            try{
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.container, toNav)
+                        .commit();
+            }catch(Exception e){
+
+            }
         }
     }
 
-    private class NotifySolvedtask extends AsyncTask<Void, Void, Boolean>{
+    private class NotifySolvedTask extends AsyncTask<Void, Void, Boolean>{
+        private final int emergencyId;
         private ServerResponse response;
+
+        public NotifySolvedTask(int id) {
+            emergencyId = id;
+        }
 
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            response = InformationSource.notifySolved();
+            response = InformationSource.notifySolved(emergencyId);
             if (response != null) {
                 return response.isSuccess();
             }else{
@@ -147,25 +179,8 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected void onPostExecute(Boolean response){
-            //TODO Dismiss
-        }
-    }
-
-    private class NotifyRespondingTask extends AsyncTask<Void, Void, Boolean>{
-        private ServerResponse response;
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            response = InformationSource.notifyResponding();
-            if(response != null){
-                return response.isSuccess();
-            }else{
-                return false;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean response){
-            //TODO change fragment stuff
+            GetEmergencyTask getEmergencyTask = new GetEmergencyTask();
+            getEmergencyTask.execute((Void) null);
         }
     }
 
@@ -235,6 +250,26 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Boolean result){
 
+        }
+    }
+
+    private class SendResponseTask extends AsyncTask<Void, Void, Boolean>{
+
+        private ServerResponse response;
+        private String toSend;
+        private int emergency_id;
+        public SendResponseTask(String response, int emergencyId){
+            toSend = response;
+            emergency_id = emergencyId;
+        }
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            response = InformationSource.sendResponse(toSend, emergency_id);
+            if(response != null){
+                return response.isSuccess();
+            }else{
+                return false;
+            }
         }
     }
 }
